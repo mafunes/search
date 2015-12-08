@@ -1,6 +1,7 @@
 package search.mafunes.com.search;
 
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
@@ -16,6 +17,14 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+
+import retrofit.Call;
+import retrofit.Callback;
+import retrofit.GsonConverterFactory;
+import retrofit.Response;
+import retrofit.Retrofit;
+import search.mafunes.com.search.dto.Result;
+import search.mafunes.com.search.interfaces.MLService;
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
@@ -59,6 +68,7 @@ public class MainActivity extends AppCompatActivity
                 SharedPreferences.Editor editor = sharedPref.edit();
                 editor.putString("query", editText.getText().toString());
                 editor.apply();
+                performRequest(editText.getText().toString());
             }
         });
 
@@ -119,5 +129,30 @@ public class MainActivity extends AppCompatActivity
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
         return true;
+    }
+
+
+    public void performRequest(String queryString) {
+        //Solo para ejemplo.
+        Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl("https://api.mercadolibre.com")
+                .addConverterFactory(GsonConverterFactory.create())
+                .build();
+
+        MLService service = retrofit.create(MLService.class);
+
+        final Call<Result> resultCall = service.search("MLA", queryString);
+
+        resultCall.enqueue(new Callback<Result>() {
+            @Override
+            public void onResponse(Response<Result> response, Retrofit retrofit) {
+                startActivity(new Intent(getApplicationContext(), SearchResultActivity.class).putExtra("items", response.body().results));
+            }
+
+            @Override
+            public void onFailure(Throwable t) {
+                Snackbar.make(findViewById(R.id.drawer_layout), "Ocurrió un error", Snackbar.LENGTH_LONG).show();
+            }
+        });
     }
 }
