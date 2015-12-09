@@ -25,6 +25,7 @@ import retrofit.Response;
 import retrofit.Retrofit;
 import search.mafunes.com.search.dto.Result;
 import search.mafunes.com.search.interfaces.MLService;
+import search.mafunes.com.search.validators.SearchValidator;
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
@@ -131,6 +132,11 @@ public class MainActivity extends AppCompatActivity
 
 
     public void performRequest(String queryString) {
+
+        if(!SearchValidator.isValid(queryString)) {
+            Snackbar.make(findViewById(R.id.drawer_layout), "Ingresa algo para buscar!", Snackbar.LENGTH_LONG).show();
+            return;
+        }
         //Solo para ejemplo.
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl("https://api.mercadolibre.com")
